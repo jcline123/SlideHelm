@@ -28,13 +28,55 @@ It’s designed to be **friendly, supportive, and easy to use**, without being d
 
 ---
 
+## 📸 Screenshots
+
+### 🛠️ Setup Interface
+
+![Setup Interface](images/SlideHelmSetup.png)
+
+*Configure your presentation duration, launch PowerPoint, and start the pacing overlay.*
+
+---
+
+### ⏱️ Live Timer Overlay
+
+![Live Timer Overlay](images/SlideHelmTimer.png)
+
+*A floating, draggable overlay shows time remaining, current slide number, pacing feedback, and a slide progress bar.*
+
+---
+
+### 📂 Log Viewer
+
+![Log Viewer](images/SlideHelmLogs.png)
+
+*Review past presentations, view details about each session, and access analytics.*
+
+---
+
+### 📊 Statistics Dashboard
+
+![Statistics Dashboard](images/SlideHelmStats.png)
+
+*Visualize how long you spent on each slide and see pacing summaries like average time per slide and most time spent.*
+
+--
+
 ## 📦 Installation
 
 You can either:
 1. **Run from source** (Python)
 2. **Install via EXE** (no Python needed)
 
-### 🔹 Option A: Run from Python (dev mode)
+### 🔹 Option A: Use the Installer
+
+Download the latest `SlideHelmInstaller.exe` from the [Releases](https://github.com/jcline123/SlideHelm/releases/tag/v1.0.0) page and run it.
+
+- Adds a desktop shortcut  
+- No setup or dependencies required  
+- Uninstall anytime from Control Panel
+
+### 🔹 Option B: Run from Python (dev mode)
 
 > Requires: Python 3.10+ and pip
 
@@ -42,14 +84,6 @@ You can either:
 pip install -r requirements.txt
 python presentation_overlay.py
 ```
-
-### 🔹 Option B: Use the Installer
-
-Download the latest `SlideHelmInstaller.exe` from the [Releases]([https://github.com/YOUR-USERNAME/SlideHelm/releases](https://github.com/jcline123/SlideHelm/releases/tag/v1.0.0)) page and run it.
-
-- Adds a desktop shortcut  
-- No setup or dependencies required  
-- Uninstall anytime from Control Panel
 
 ---
 
