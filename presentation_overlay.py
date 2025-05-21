@@ -7,7 +7,7 @@ from datetime import datetime
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout,
     QPushButton, QLineEdit, QMessageBox, QProgressBar, QListWidget,
-    QListWidgetItem, QSizePolicy
+    QListWidgetItem, QSizePolicy, QDateTimeEdit
 )
 from PyQt5.QtCore import Qt, QTimer
 import win32com.client
@@ -179,6 +179,16 @@ class MainWindow(QWidget):
 
         self.duration_input = QLineEdit()
         self.duration_input.setPlaceholderText("e.g. 60")
+        # --- NEW: date/time selector -----------------
+        from datetime import datetime
+        self.start_picker = QDateTimeEdit()
+        self.start_picker.setDisplayFormat("yyyy-MM-dd  hh:mm AP")
+        self.start_picker.setDateTime(
+            datetime.now().replace(second=0, microsecond=0)
+        )
+        layout.addWidget(QLabel("Scheduled start (local time):"))
+        layout.addWidget(self.start_picker)
+        # ---------------------------------------------
         layout.addWidget(self.duration_input)
 
         row = QHBoxLayout()
@@ -231,6 +241,8 @@ class MainWindow(QWidget):
             return
 
         self.presentation_minutes = int(duration)
+        from datetime import datetime
+        self.scheduled_start = self.start_picker.dateTime().toPyDateTime()
 
         try:
             self.ppt = win32com.client.Dispatch("PowerPoint.Application")
@@ -252,18 +264,35 @@ class MainWindow(QWidget):
         self.overlay.move(200, 200)
         self.timer.start()
 
+    from datetime import datetime
+
     def update_overlay(self):
+        # Stop if slideshow ended
         if not self.ppt or self.ppt.SlideShowWindows.Count == 0:
             self.end_session()
             return
 
-        elapsed = time.time() - self.start_time
+        now = datetime.now()
+
+        # ── 1. Scheduled-start countdown ───────────────────────────────
+        if now < self.scheduled_start:
+            remaining_to_start = self.scheduled_start - now
+            mins, secs = divmod(int(remaining_to_start.total_seconds()), 60)
+            self.overlay.timer_label.setText(f"⏳ Starts in: {mins:02}:{secs:02}")
+            self.overlay.slide_label.setText("Waiting…")
+            self.overlay.message_label.setText("Presentation hasn’t started yet.")
+            self.overlay.progress_bar.setValue(0)
+            return                     # ← skip pacing until start time
+        # ───────────────────────────────────────────────────────────────
+
+        # ── 2. Normal pacing after start time ──────────────────────────
+        elapsed = (now - self.scheduled_start).total_seconds()
         total_time = self.presentation_minutes * 60
         remaining = max(0, total_time - elapsed)
-        minutes = int(remaining // 60)
-        seconds = int(remaining % 60)
+        minutes  = int(remaining // 60)
+        seconds  = int(remaining % 60)
 
-        total_slides = self.presentation.Slides.Count
+        total_slides  = self.presentation.Slides.Count
         current_slide = self.ppt.SlideShowWindows(1).View.CurrentShowPosition
 
         self.overlay.timer_label.setText(f"⏱️ Time left: {minutes}:{seconds:02}")
@@ -290,12 +319,15 @@ class MainWindow(QWidget):
             pacing = "way behind"
             self.overlay.message_label.setText("🔴 You're well behind — consider skipping less critical slides.")
 
+        # add to log
         self.slide_log.append({
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "elapsed_seconds": int(elapsed),
             "slide": current_slide,
             "pacing": pacing
         })
+        # ───────────────────────────────────────────────────────────────
+
 
     def end_session(self):
         self.timer.stop()
